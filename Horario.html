@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horario de Clases - Marzo 2026</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
+      50% { box-shadow: 0 0 30px rgba(168, 85, 247, 0.6); }
+    }
+    
+    .status-live {
+      animation: pulse-glow 2s ease-in-out infinite;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .class-card {
+      animation: slideIn 0.5s ease-out forwards;
+    }
+
+    .cover-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .purple-gradient-bg {
+      background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
+    }
+
+    .event-card {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fcd34d 100%) !important;
+    }
+
+    .event-card .border-t-4 {
+      border-color: #f59e0b !important;
+    }
+
+    .app-wrapper {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full w-full m-0 p-0">
+  <div class="w-full" style="background-color: #3e0079; min-height: 100%;">
+   <div class="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <header class="text-center mb-12">
+     <h1 id="page-title" class="text-4xl sm:text-5xl font-bold mb-3" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #fbbf24 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Horario de Clases</h1>
+     <p id="page-subtitle" class="text-xl text-white font-medium">Marzo 2026</p>
+     <div class="mt-4 inline-flex flex-col items-center gap-2 px-6 py-3 bg-white rounded-2xl shadow-lg">
+      <div class="flex items-center gap-2">
+       <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+       </svg><span class="text-sm font-semibold text-gray-600">Tiempo para la siguiente clase</span>
+      </div>
+      <div id="next-class-countdown" class="text-2xl font-bold text-purple-700">
+       Cargando...
+      </div>
+     </div>
+    </header><!-- Classes Grid -->
+    <div id="classes-container" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3"></div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      page_title: "Horario de Clases",
+      page_subtitle: "Marzo 2026",
+      background_color: "#faf5ff",
+      card_background: "#ffffff",
+      primary_color: "#7c3aed",
+      accent_color: "#a855f7",
+      highlight_color: "#fbbf24",
+      font_family: "system-ui",
+      font_size: 16
+    };
+
+    const classes = [
+      {
+        id: 1,
+        title: "Melissa Arria – Q&A",
+        instructor: "Melissa Arria",
+        start: new Date("2026-03-28T10:30:00-06:00"),
+        end: new Date("2026-03-28T11:30:00-06:00"),
+        isEvent: false,
+        zoomLink: "https://us06web.zoom.us/j/88441988528?pwd=kiHJFqk8IhJd8zkHlERO8CpRWInvXV.1",
+        coverImage: "https://drive.google.com/thumbnail?id=1mrAQjmxMN8UEyW1PFc9Lj1CFXmJrsGdN&sz=w1000"
+      },
+      {
+        id: 2,
+        title: "Melissa Arria – Q&A",
+        instructor: "Melissa Arria",
+        start: new Date("2026-04-21T19:00:00-06:00"),
+        end: new Date("2026-04-21T20:00:00-06:00"),
+        isEvent: false,
+        zoomLink: "https://us06web.zoom.us/j/88412527406?pwd=szXgNI4aUe10lBvBa6igYtcYjEVmUU.1",
+        coverImage: "https://drive.google.com/thumbnail?id=1c8xZsRjIjLuR7GjF9Q6vXogxuRk0Btp6&sz=w1000"
+      }
+    ];
+
+    function getClassStatus(classData, now) {
+      if (now >= classData.start && now < classData.end) {
+        return 'live';
+      } else if (now < classData.start) {
+        return 'upcoming';
+      } else {
+        return 'finished';
+      }
+    }
+
+    function canAccessZoom(classData, now) {
+      if (!classData.zoomLink) return false;
+      
+      const fiveMinutesBefore = new Date(classData.start.getTime() - 5 * 60 * 1000);
+      
+      return now >= fiveMinutesBefore && now < classData.end;
+    }
+
+    function getTimeRemaining(targetDate, now) {
+      const diff = targetDate - now;
+      
+      if (diff <= 0) return null;
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      return { days, hours, minutes, seconds, total: diff };
+    }
+
+    function formatTimeRemaining(remaining) {
+      if (!remaining) return '';
+
+      if (remaining.days > 0) {
+        return `${remaining.days}d ${remaining.hours}h ${remaining.minutes}m`;
+      } else if (remaining.hours > 0) {
+        return `${remaining.hours}h ${remaining.minutes}m`;
+      } else {
+        return `${remaining.minutes}m ${remaining.seconds}s`;
+      }
+    }
+
+    function generateGoogleCalendarLink(classData) {
+      const formatDateForGoogle = (date) => {
+        return date
+          .toISOString()
+          .replace(/[-:]/g, '')
+          .split('.')[0] + 'Z';
+      };
+
+      const params = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: classData.title,
+        dates: `${formatDateForGoogle(classData.start)}/${formatDateForGoogle(classData.end)}`,
+        details: `Instructor: ${classData.instructor}`,
+        location: 'Clase online',
+        ctz: 'America/Mexico_City'
+      });
+
+      return `https://calendar.google.com/calendar/render?${params.toString()}&sf=true&output=xml`;
+    }
+
+    function getDayName(date) {
+      const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      return days[date.getDay()];
+    }
+
+    function createClassCard(classData) {
+      const card = document.createElement('div');
+      card.className = 'class-card bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105';
+      card.style.opacity = '0';
+      card.style.animationDelay = `${classData.id * 0.1}s`;
+
+      const now = new Date();
+      const status = getClassStatus(classData, now);
+      const dayName = getDayName(classData.start);
+
+      let statusBadge = '';
+      let statusColor = '';
+      let borderColor = '';
+      let countdownText = '';
+      let eventTag = '';
+
+      if (classData.isEvent) {
+        if (status === 'live') {
+          statusBadge = '🔴 EN VIVO AHORA';
+          statusColor = 'bg-red-100 text-red-800';
+          borderColor = 'border-red-500';
+          eventTag = '🎪 EVENTO PRESENCIAL';
+          const remaining = getTimeRemaining(classData.end, now);
+          if (remaining) {
+            countdownText = `▶️ Faltan ${remaining.minutes} min`;
+          }
+          card.classList.add('status-live');
+        } else if (status === 'upcoming') {
+          statusBadge = '🎪 EVENTO PRESENCIAL';
+          statusColor = 'bg-red-100 text-red-800';
+          borderColor = 'border-red-500';
+          eventTag = '🎪 EVENTO PRESENCIAL';
+          const remaining = getTimeRemaining(classData.start, now);
+          if (remaining) {
+            countdownText = `⏳ Empieza en ${formatTimeRemaining(remaining)}`;
+          }
+        } else {
+          statusBadge = '✔️ Finalizado';
+          statusColor = 'bg-red-100 text-red-800';
+          borderColor = 'border-red-300';
+          eventTag = '🎪 EVENTO PRESENCIAL';
+          countdownText = '✔️ Evento finalizado';
+        }
+        card.classList.add('event-card');
+      } else {
+        if (status === 'live') {
+          statusBadge = '🟢 En curso';
+          statusColor = 'bg-green-100 text-green-800';
+          borderColor = 'border-green-500';
+          const remaining = getTimeRemaining(classData.end, now);
+          if (remaining) {
+            countdownText = `▶️ Faltan ${remaining.minutes} min`;
+          }
+          card.classList.add('status-live');
+        } else if (status === 'upcoming') {
+          statusBadge = '🟡 Próxima';
+          statusColor = 'bg-yellow-100 text-yellow-800';
+          borderColor = 'border-yellow-500';
+          const remaining = getTimeRemaining(classData.start, now);
+          if (remaining) {
+            countdownText = `⏳ Empieza en ${formatTimeRemaining(remaining)}`;
+          }
+        } else {
+          statusBadge = '🔴 Finalizada';
+          statusColor = 'bg-gray-100 text-gray-600';
+          borderColor = 'border-gray-300';
+          countdownText = '✔️ Clase finalizada';
+        }
+      }
+
+      const canZoom = canAccessZoom(classData, now);
+
+      // Cover image HTML
+      let coverHTML = '';
+
+      if (classData.coverImage) {
+        coverHTML = `
+          <div class="relative">
+            <img 
+              src="${classData.coverImage}" 
+              alt="${classData.title}" 
+              class="cover-image w-full"
+              onerror="this.style.display='none'; this.parentElement.querySelector('.fallback-cover').style.display='flex';"
+            >
+            <div class="fallback-cover purple-gradient-bg cover-image hidden items-center justify-center text-white text-2xl font-bold px-4 text-center">
+              ${classData.title}
+            </div>
+          </div>
+        `;
+      } else {
+        coverHTML = `
+          <div class="purple-gradient-bg cover-image flex items-center justify-center text-white text-2xl font-bold px-4 text-center">
+            ${classData.title}
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div class="border-t-4 ${borderColor}">
+          ${coverHTML}
+          <div class="p-6">
+            ${eventTag ? `<div class="mb-4 px-3 py-2 rounded-lg bg-red-200 text-red-900 text-sm font-bold text-center">${eventTag}</div>` : ''}
+            <div class="flex items-start justify-between mb-4">
+              <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusColor}">
+                ${statusBadge}
+              </span>
+              <span class="text-sm font-medium ${classData.isEvent ? 'text-white' : 'text-purple-600'}">${dayName}</span>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900 mb-2 leading-tight">
+              ${classData.title}
+            </h3>
+
+            <div class="flex items-center gap-2 mb-4">
+              <svg class="w-4 h-4 ${classData.isEvent ? 'text-white' : 'text-purple-600'} flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a. 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <span class="text-sm text-gray-600">${classData.instructor}</span>
+            </div>
+
+            <div class="space-y-2 mb-4">
+              <div class="flex items-center gap-2 text-sm text-gray-700">
+                <svg class="w-4 h-4 ${classData.isEvent ? 'text-white' : 'text-purple-600'} flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span>${classData.start.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-700">
+                <svg class="w-4 h-4 ${classData.isEvent ? 'text-white' : 'text-purple-600'} flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>${classData.start.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${classData.end.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+              </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-purple-50 to-yellow-50 rounded-lg p-3 mb-4">
+              <p class="text-sm font-semibold text-center text-gray-800" data-countdown="${classData.id}">
+                ${countdownText}
+              </p>
+            </div>
+
+            ${classData.zoomLink ? `
+              <button 
+                data-zoom-btn="${classData.id}"
+                onclick="${canZoom ? `window.open('${classData.zoomLink}', '_blank', 'noopener,noreferrer')` : ''}"
+                class="w-full mb-3 py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md font-semibold ${
+                  canZoom 
+                    ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white hover:shadow-lg' 
+                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                }"
+                ${!canZoom ? 'disabled' : ''}
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                ${canZoom ? '🎥 Entrar a la clase' : '🔒 Clase aún no disponible'}
+              </button>
+            ` : ''}
+
+            ${classData.isEvent ? `
+              <button 
+                onclick="window.open('${generateGoogleCalendarLink(classData)}', '_blank', 'noopener,noreferrer')"
+                class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                ${status === 'finished' ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                📅 Agendar en mi calendario
+              </button>
+            ` : `
+              <button 
+                onclick="window.open('${generateGoogleCalendarLink(classData)}', '_blank', 'noopener,noreferrer')"
+                class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                ${status === 'finished' ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                📅 Agendar en mi calendario
+              </button>
+            `}
+          </div>
+        </div>
+      `;
+
+      return card;
+    }
+
+    function updateNextClassCountdown() {
+      const now = new Date();
+      const countdownEl = document.getElementById('next-class-countdown');
+      
+      // Encontrar la siguiente clase (próxima o en curso)
+      const upcomingClasses = classes
+        .filter(c => now < c.end)
+        .sort((a, b) => a.start - b.start);
+      
+      if (upcomingClasses.length === 0) {
+        countdownEl.textContent = '🎉 Todas las clases finalizadas';
+        countdownEl.className = 'text-xl font-bold text-gray-500';
+        return;
+      }
+      
+      const nextClass = upcomingClasses[0];
+      const status = getClassStatus(nextClass, now);
+      
+      if (status === 'live') {
+        const remaining = getTimeRemaining(nextClass.end, now);
+        if (remaining) {
+          countdownEl.textContent = `⏱️ ${remaining.hours}h ${remaining.minutes}m ${remaining.seconds}s (en curso)`;
+          countdownEl.className = 'text-2xl font-bold text-green-600';
+        }
+      } else {
+        const remaining = getTimeRemaining(nextClass.start, now);
+        if (remaining) {
+          if (remaining.days > 0) {
+            countdownEl.textContent = `⏳ ${remaining.days}d ${remaining.hours}h ${remaining.minutes}m ${remaining.seconds}s`;
+          } else if (remaining.hours > 0) {
+            countdownEl.textContent = `⏳ ${remaining.hours}h ${remaining.minutes}m ${remaining.seconds}s`;
+          } else {
+            countdownEl.textContent = `⏳ ${remaining.minutes}m ${remaining.seconds}s`;
+          }
+          countdownEl.className = 'text-2xl font-bold text-purple-700';
+        }
+      }
+    }
+
+    function updateCountdowns() {
+      const now = new Date();
+      
+      classes.forEach(classData => {
+        const countdownEl = document.querySelector(`[data-countdown="${classData.id}"]`);
+        if (!countdownEl) return;
+
+        const status = getClassStatus(classData, now);
+
+        if (status === 'live') {
+          const remaining = getTimeRemaining(classData.end, now);
+          if (remaining) {
+            countdownEl.textContent = `▶️ Faltan ${remaining.minutes} min ${remaining.seconds} seg`;
+          } else {
+            countdownEl.textContent = '✔️ Clase finalizada';
+          }
+        } else if (status === 'upcoming') {
+          const remaining = getTimeRemaining(classData.start, now);
+          if (remaining) {
+            countdownEl.textContent = `⏳ Empieza en ${formatTimeRemaining(remaining)}`;
+          }
+        } else {
+          countdownEl.textContent = '✔️ Clase finalizada';
+        }
+
+        // Actualizar botón de Zoom
+        if (classData.zoomLink) {
+          const zoomBtn = document.querySelector(`[data-zoom-btn="${classData.id}"]`);
+          if (zoomBtn) {
+            const canAccess = canAccessZoom(classData, now);
+            
+            if (canAccess) {
+              zoomBtn.disabled = false;
+              zoomBtn.onclick = () => window.open(classData.zoomLink, '_blank', 'noopener,noreferrer');
+              zoomBtn.className = 'w-full mb-3 py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md font-semibold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white hover:shadow-lg';
+              zoomBtn.innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                🎥 Entrar a la clase
+              `;
+            } else {
+              zoomBtn.disabled = true;
+              zoomBtn.onclick = null;
+              zoomBtn.className = 'w-full mb-3 py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md font-semibold bg-gray-200 text-gray-500 cursor-not-allowed';
+              zoomBtn.innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                🔒 Clase aún no disponible
+              `;
+            }
+          }
+        }
+      });
+    }
+
+    function renderClasses() {
+      const container = document.getElementById('classes-container');
+      container.innerHTML = '';
+      
+      const now = new Date();
+      const sortedClasses = [...classes].sort((a, b) => {
+        const aStatus = getClassStatus(a, now);
+        const bStatus = getClassStatus(b, now);
+        
+        // Eventos presenciales primero si están en vivo o próximos
+        if (a.isEvent && !b.isEvent && (aStatus === 'live' || aStatus === 'upcoming')) return -1;
+        if (!a.isEvent && b.isEvent && (bStatus === 'live' || bStatus === 'upcoming')) return 1;
+        
+        if (aStatus === 'live' && bStatus !== 'live') return -1;
+        if (bStatus === 'live' && aStatus !== 'live') return 1;
+        if (aStatus === 'upcoming' && bStatus === 'finished') return -1;
+        if (bStatus === 'upcoming' && aStatus === 'finished') return 1;
+        
+        return a.start - b.start;
+      });
+
+      sortedClasses.forEach(classData => {
+        const card = createClassCard(classData);
+        container.appendChild(card);
+      });
+    }
+
+    async function onConfigChange(config) {
+      const titleEl = document.getElementById('page-title');
+      const subtitleEl = document.getElementById('page-subtitle');
+      
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseFontStack = 'system-ui, -apple-system, sans-serif';
+      const baseSize = config.font_size || defaultConfig.font_size;
+      
+      titleEl.textContent = config.page_title || defaultConfig.page_title;
+      titleEl.style.fontSize = `${baseSize * 2}px`;
+      titleEl.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      
+      subtitleEl.textContent = config.page_subtitle || defaultConfig.page_subtitle;
+      subtitleEl.style.fontSize = `${baseSize * 1.25}px`;
+      subtitleEl.style.fontFamily = `${customFont}, ${baseFontStack}`;
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.primary_color || defaultConfig.primary_color,
+              set: (value) => {
+                config.primary_color = value;
+                window.elementSdk.setConfig({ primary_color: value });
+              }
+            },
+            {
+              get: () => config.accent_color || defaultConfig.accent_color,
+              set: (value) => {
+                config.accent_color = value;
+                window.elementSdk.setConfig({ accent_color: value });
+              }
+            },
+            {
+              get: () => config.highlight_color || defaultConfig.highlight_color,
+              set: (value) => {
+                config.highlight_color = value;
+                window.elementSdk.setConfig({ highlight_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: {
+            get: () => config.font_family || defaultConfig.font_family,
+            set: (value) => {
+              config.font_family = value;
+              window.elementSdk.setConfig({ font_family: value });
+            }
+          },
+          fontSizeable: {
+            get: () => config.font_size || defaultConfig.font_size,
+            set: (value) => {
+              config.font_size = value;
+              window.elementSdk.setConfig({ font_size: value });
+            }
+          }
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["page_title", config.page_title || defaultConfig.page_title],
+          ["page_subtitle", config.page_subtitle || defaultConfig.page_subtitle]
+        ])
+      });
+    }
+
+    // Initialize on page load
+    function initializeApp() {
+      try {
+        renderClasses();
+        updateNextClassCountdown();
+        
+        // Update countdowns every second
+        setInterval(updateCountdowns, 1000);
+        setInterval(updateNextClassCountdown, 1000);
+        
+        // Re-render classes every minute
+        setInterval(renderClasses, 60000);
+      } catch (error) {
+        console.error('Error initializing calendar:', error);
+      }
+    }
+
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+      initializeApp();
+    }
+  </script>
+  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9df7436ce715a575',t:'MTc3NDAzNjQxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9df8863bf74dcc72',t:'MTc3NDA0OTYzMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
