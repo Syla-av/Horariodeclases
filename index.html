@@ -211,12 +211,21 @@
      </div>
      <!-- Instructions -->
      <div style="margin-bottom:24px;padding:16px;background:rgba(94,23,235,0.1);border-radius:12px;border:1px solid rgba(94,23,235,0.2);">
-       <p style="margin:0;color:#fff;font-size:14px;line-height:1.5;">
-         <strong style="color:#a78bfa;"> ¿Cómo usarlo?</strong><br>
-         1. Selecciona el día y hora para tu sesión de estudio<br>
-         2. Dale clic en "Guardar en Google Calendar" para reservar tu tiempo<br>
-         3. Verás las sesiones guardadas en la lista de abajo
-       </p>
+       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+         <p style="margin:0;color:#fff;font-size:14px;line-height:1.5;">
+           <strong style="color:#a78bfa;">📅 ¿Cómo usarlo?</strong>
+         </p>
+         <button onclick="toggleInstructions()" id="toggleBtn" style="background:none;border:none;color:#a78bfa;cursor:pointer;padding:4px;font-size:12px;font-weight:600;transition:transform 0.3s;">
+           <i data-lucide="chevron-up" id="toggleIcon" style="width:16px;height:16px;transition:transform 0.3s;"></i>
+         </button>
+       </div>
+       <div id="instructionsContent">
+         <p style="margin:0;color:#fff;font-size:14px;line-height:1.5;">
+           1. Selecciona el día y hora para tu sesión de estudio<br>
+           2. Dale clic en "Guardar en Google Calendar" para reservar tu tiempo<br>
+           3. Verás las sesiones guardadas en la lista de abajo
+         </p>
+       </div>
      </div>
      <div style="overflow-y: auto; flex: 1; margin-bottom: 20px; padding-right: 8px;">
       <!-- Seleccionar días -->
