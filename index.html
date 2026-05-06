@@ -211,19 +211,24 @@
      </div>
      <!-- Instructions -->
      <div style="margin-bottom:24px;padding:16px;background:rgba(94,23,235,0.1);border-radius:12px;border:1px solid rgba(94,23,235,0.2);">
-       <div style="margin-bottom:12px;">
+       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
          <p style="margin:0;color:#fff;font-size:14px;line-height:1.5;">
            <strong style="color:#a78bfa;">💡 ¿Qué es este planificador?</strong><br>
-           Este planificador busca facilitarte la organización para reservar tiempo y asegurar tu compromiso con el aprendizaje continuo a través de las clases de Creators Lab.
+           Este planificador busca facilitar el compromiso con el aprendizaje del curso.
          </p>
+         <button onclick="toggleInstructions()" id="toggleBtn" style="background:none;border:none;color:#a78bfa;cursor:pointer;padding:4px;font-size:12px;font-weight:600;transition:transform 0.3s;">
+           <i data-lucide="chevron-up" id="toggleIcon" style="width:16px;height:16px;transition:transform 0.3s;"></i>
+         </button>
        </div>
-       <div>
-         <p style="margin:0;color:#fff;font-size:14px;line-height:1.5;">
-           <strong style="color:#a78bfa;">📅 ¿Cómo usarlo?</strong><br>
-           1. Selecciona el día y hora para tu sesión de estudio<br>
-           2. Dale clic en "Guardar en Google Calendar" para reservar tu tiempo<br>
-           3. Verás tu sesión guardada en la lista de abajo
-         </p>
+       <div id="instructionsContent">
+         <div>
+           <p style="margin:0;color:#fff;font-size:14px;line-height:1.5;">
+             <strong style="color:#a78bfa;">📅 ¿Cómo usarlo?</strong><br>
+             1. Selecciona el día y hora para tu sesión de estudio<br>
+             2. Dale clic en "Guardar en Google Calendar" para reservar tu tiempo<br>
+             3. Verás tu sesión guardada en la lista de abajo
+           </p>
+         </div>
        </div>
      </div>
      <div style="overflow-y: auto; flex: 1; margin-bottom: 20px; padding-right: 8px;">
@@ -252,7 +257,7 @@
       <div style="margin-bottom:20px;">
         <label for="sessionName" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.55);display:block;margin-bottom:8px;">Nombre de la sesión</label>
         <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <input type="text" id="sessionName" placeholder="Ej: Sesión de estudio Creators Lab" style="flex:1;padding:12px;border-radius:8px;border:1px solid rgba(94,23,235,0.3);background:rgba(94,23,235,0.05);color:#fff;font-size:14px;font-family:inherit;">
+          <input type="text" id="sessionName" placeholder="Ej: Sesión de estudio Boost your Instagram" style="flex:1;padding:12px;border-radius:8px;border:1px solid rgba(94,23,235,0.3);background:rgba(94,23,235,0.05);color:#fff;font-size:14px;font-family:inherit;">
           <button onclick="addSchedule()" style="padding:12px 16px;border-radius:8px;border:none;background:linear-gradient(135deg, #5e17eb, #7c3aed);color:#fff;cursor:pointer;font-size:14px;font-weight:600;transition:all 0.2s;display:flex;align-items:center;gap:6px;">
             <i data-lucide="calendar-plus" style="width:16px;height:16px;"></i>
             <span>Guardar en Google Calendar</span>
@@ -1202,7 +1207,7 @@ let selectedDays = new Set();
 let savedSchedules = [];
 
 function openScheduleModal() {
-  document.getElementById('sessionName').value = 'Sesión de estudio Creators Lab';
+  document.getElementById('sessionName').value = 'Sesión de estudio Boost your Instagram';
   document.getElementById('daySelect').value = ''; // Clear dropdown selection
   updateSessionNameDisplay();
   initializeScheduleModal();
@@ -1224,8 +1229,21 @@ function updateSessionNameDisplay() {
     if (!selectedDay) {
       displayDiv.textContent = '';
     } else {
-      displayDiv.textContent = `${nameInput.value || 'Sesión de estudio Creators Lab'} - ${selectedDay}`;
+      displayDiv.textContent = `${nameInput.value || 'Sesión de estudio Boost your Instagram'} - ${selectedDay}`;
     }
+  }
+}
+
+function toggleInstructions() {
+  const content = document.getElementById('instructionsContent');
+  const icon = document.getElementById('toggleIcon');
+  
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    icon.style.transform = 'rotate(0deg)';
+  } else {
+    content.style.display = 'none';
+    icon.style.transform = 'rotate(180deg)';
   }
 }
 
@@ -1284,7 +1302,7 @@ function addSchedule() {
   savedSchedules.push(newSchedule);
   
   // Reset form
-  document.getElementById('sessionName').value = 'Sesión de estudio Creators Lab';
+  document.getElementById('sessionName').value = 'Sesión de estudio Boost your Instagram';
   document.getElementById('daySelect').value = '';
   
   updateSessionNameDisplay();
