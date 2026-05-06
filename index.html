@@ -1202,6 +1202,28 @@ function showNotification(message) {
   }, 3000);
 }
 
+// Save reservation data to Supabase for analytics
+async function saveReservationToSupabase(reservationData) {
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/reservations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(reservationData)
+    });
+    
+    if (!response.ok) {
+      console.error('Error saving reservation:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Error saving reservation to Supabase:', error);
+  }
+}
+
 // ===== SCHEDULE MODAL FUNCTIONS =====
 let selectedDays = new Set();
 let savedSchedules = [];
@@ -1295,6 +1317,20 @@ function addSchedule() {
     startTime: startTime
   };
   
+  // Track reservation data for analytics
+  const reservationData = {
+    session_name: sessionName,
+    selected_day: selectedDay, 
+    start_time: startTime,
+    reservation_timestamp: new Date().toISOString(),
+    user_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    calendar_type: 'Boost_Your_Instagram',
+    page: 'CalendarioBYI.html'
+  };
+  
+  // Save reservation data asynchronously (don't wait for it)
+  saveReservationToSupabase(reservationData);
+  
   // Save to Google Calendar first
   saveScheduleToGoogleCalendar(newSchedule);
   
@@ -1304,8 +1340,9 @@ function addSchedule() {
   // Reset form
   document.getElementById('sessionName').value = 'Sesión de estudio Boost your Instagram';
   document.getElementById('daySelect').value = '';
+  document.getElementById('startTime').value = '';
+  document.getElementById('sessionNameDisplay').textContent = '';
   
-  updateSessionNameDisplay();
   renderScheduleList();
   showNotification('✅ Sesión guardada en Google Calendar');
 }
