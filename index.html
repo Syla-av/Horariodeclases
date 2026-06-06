@@ -3,7 +3,7 @@
  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Horario de Clases - Mayo 2026</title>
+  <title>Horario de Clases - Junio 2026</title>
   <script src="https://cdn.tailwindcss.com/3.4.17" type="text/javascript"></script>
   <script src="/_sdk/element_sdk.js"></script>
   <style>
@@ -127,7 +127,7 @@
       <!-- Center Content -->
       <div class="text-center">
         <h1 id="page-title" class="text-4xl sm:text-5xl font-bold mb-3" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #fbbf24 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Horario de Clases</h1>
-        <p id="page-subtitle" class="text-xl text-white font-medium mb-4">Mayo 2026</p>
+        <p id="page-subtitle" class="text-xl text-white font-medium mb-4">Junio 2026</p>
         
         <!-- Planifica tus sesiones Button - Mobile (After title) -->
         <div class="sm:hidden mb-4">
@@ -292,7 +292,7 @@ let selectedFile = null; // Archivo seleccionado para subir
 
     const defaultConfig = {
       page_title: "Calendario de Clases y Retos",
-      page_subtitle: "Mayo 2026",
+      page_subtitle: "Junio 2026",
       background_color: "#faf5ff",
       card_background: "#ffffff",
       primary_color: "#7c3aed",
@@ -305,13 +305,23 @@ let selectedFile = null; // Archivo seleccionado para subir
     const classes = [
       {
         id: 1,
-        title: "Sesión de implementación. Optimiza tu perfil",
-        instructor: "Alexia Tagle",
-        start: new Date("2026-05-29T19:00:00-06:00"),
-        end: new Date("2026-05-29T20:00:00-06:00"),
+        title: "Sesión de Implementación",
+        instructor: "Melissa Arria",
+        start: new Date("2026-06-25T19:00:00-06:00"),
+        end: new Date("2026-06-25T20:00:00-06:00"),
         isEvent: false,
-        zoomLink: "https://us06web.zoom.us/j/84118549997?pwd=UT4iyrChv7kNHbxPXTzlaz9ZOshYb",
-        coverImage: "https://drive.google.com/thumbnail?id=10-b6KdrDiVjmvGiuMUWAMeqexqz9YGTw&sz=w1000"
+        zoomLink: "https://us06web.zoom.us/j/81165035525?pwd=Urj9iXbr2bimV3rXjA3UbEE6ZmkCIu.1",
+        coverImage: "https://drive.google.com/thumbnail?id=18f-Us58oSvEoWW3YNXizzFeVNT9xY5Sx&sz=w1000"
+      },
+      {
+        id: 2,
+        title: "Graduación Boost Academy",
+        instructor: "Dirección: IOS Offices CDMX",
+        start: new Date("2026-06-27T10:00:00-06:00"),
+        end: new Date("2026-06-27T13:00:00-06:00"),
+        isEvent: true,
+        location: "IOS Offices CDMX",
+        coverImage: "https://drive.google.com/thumbnail?id=1qOJXocxsWBmZrswpT2DVb0zPa_FONLmL&sz=w1000"
       }
     ];
 
@@ -321,8 +331,8 @@ let selectedFile = null; // Archivo seleccionado para subir
         id: 101,
         title: "Reto #1",
         description: "¡Participa y comparte tu talento con la comunidad!",
-        start: new Date("2026-05-07T16:00:00-06:00"),
-        end: new Date("2026-05-08T23:59:59-06:00"),
+        start: new Date("2026-06-11T16:00:00-06:00"),
+        end: new Date("2026-06-12T23:59:59-06:00"),
         isChallenge: true,
         emoji: "🎯"
       },
@@ -330,26 +340,8 @@ let selectedFile = null; // Archivo seleccionado para subir
         id: 102,
         title: "Reto #2",
         description: "¡Demuestra tu creatividad y destaca entre los mejores!",
-        start: new Date("2026-05-14T16:00:00-06:00"),
-        end: new Date("2026-05-15T23:59:59-06:00"),
-        isChallenge: true,
-        emoji: "📱"
-      },
-      {
-        id: 103,
-        title: "Reto #3",
-        description: "¡Conecta con otros creators y expande tu red!",
-        start: new Date("2026-05-21T16:00:00-06:00"),
-        end: new Date("2026-05-22T23:59:59-06:00"),
-        isChallenge: true,
-        emoji: "🤝"
-      },
-      {
-        id: 104,
-        title: "Reto #4",
-        description: "¡Comparte tu proceso y inspira a otros creators!",
-        start: new Date("2026-05-28T16:00:00-06:00"),
-        end: new Date("2026-05-29T23:59:59-06:00"),
+        start: new Date("2026-06-25T16:00:00-06:00"),
+        end: new Date("2026-06-26T23:59:59-06:00"),
         isChallenge: true,
         emoji: "✨"
       }
@@ -413,8 +405,8 @@ let selectedFile = null; // Archivo seleccionado para subir
         action: 'TEMPLATE',
         text: classData.title,
         dates: `${formatDateForGoogle(classData.start)}/${formatDateForGoogle(classData.end)}`,
-        details: `Instructor: ${classData.instructor}`,
-        location: 'Clase online',
+        details: classData.location ? `${classData.instructor}\nDirección: ${classData.location}` : `Instructor: ${classData.instructor}`,
+        location: classData.location || 'Clase online',
         ctz: 'America/Mexico_City'
       });
 
@@ -700,7 +692,7 @@ let selectedFile = null; // Archivo seleccionado para subir
       const countdownEl = document.getElementById('next-class-countdown');
       
       // Encontrar la siguiente clase (pr��xima o en curso)
-      const upcomingClasses = classes
+      const upcomingClasses = allEvents
         .filter(c => now < c.end)
         .sort((a, b) => a.start - b.start);
       
@@ -737,7 +729,7 @@ let selectedFile = null; // Archivo seleccionado para subir
     function updateCountdowns() {
       const now = new Date();
       
-      classes.forEach(classData => {
+      allEvents.forEach(classData => {
         const countdownEl = document.querySelector(`[data-countdown="${classData.id}"]`);
         if (!countdownEl) return;
 
