@@ -619,7 +619,7 @@ let selectedFile = null; // Archivo seleccionado para subir
             ${classData.isChallenge ? `
               ${status === 'live' ? `
                 <button 
-                  onclick="openParticipationForm('${classData.title}', '${classData.start.toISOString().split('T')[0]}')"
+                  onclick="openParticipationForm('${classData.title}', '${classData.start.toISOString()}', '${classData.end.toISOString()}')"
                   class="w-full mb-3 py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md font-semibold bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white hover:shadow-lg"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -702,8 +702,8 @@ let selectedFile = null; // Archivo seleccionado para subir
       const now = new Date();
       const countdownEl = document.getElementById('next-class-countdown');
       
-      // Encontrar la siguiente clase (pr��xima o en curso)
-      const upcomingClasses = allEvents
+      // Encontrar la siguiente clase (próxima o en curso)
+      const upcomingClasses = classes
         .filter(c => now < c.end)
         .sort((a, b) => a.start - b.start);
       
@@ -719,7 +719,7 @@ let selectedFile = null; // Archivo seleccionado para subir
       if (status === 'live') {
         const remaining = getTimeRemaining(nextClass.end, now);
         if (remaining) {
-          countdownEl.textContent = `⏱��� ${remaining.hours}h ${remaining.minutes}m ${remaining.seconds}s (en curso)`;
+          countdownEl.textContent = `${remaining.hours}h ${remaining.minutes}m ${remaining.seconds}s (en curso)`;
           countdownEl.className = 'text-2xl font-bold text-green-600';
         }
       } else {
@@ -751,7 +751,7 @@ let selectedFile = null; // Archivo seleccionado para subir
           if (remaining) {
             countdownEl.textContent = `▶️ Faltan ${remaining.minutes} min ${remaining.seconds} seg`;
           } else {
-            countdownEl.textContent = '���️ Clase finalizada';
+            countdownEl.textContent = 'Clase finalizada';
           }
         } else if (status === 'upcoming') {
           const remaining = getTimeRemaining(classData.start, now);
@@ -873,12 +873,11 @@ function formatFileSize(bytes) {
 }
 
 // ===== PARTICIPATION MODAL FUNCTIONS =====
-function openParticipationForm(challengeTitle, challengeDate) {
+function openParticipationForm(challengeTitle, challengeStartIso, challengeEndIso) {
   // Verificar si el reto está activo
   const nowUser = new Date();
-  const [eYear, eMonth, eDay] = challengeDate.split('-').map(Number);
-  const challengeStart = new Date(eYear, eMonth - 1, eDay, 16, 0, 0, 0); // 4 PM
-  const challengeEnd = new Date(eYear, eMonth - 1, eDay + 1, 23, 59, 59, 999); // 11:59 PM next day
+  const challengeStart = new Date(challengeStartIso);
+  const challengeEnd = new Date(challengeEndIso);
   const isActive = nowUser >= challengeStart && nowUser <= challengeEnd;
   
   // Mostrar mensaje diferente si el reto está activo
@@ -899,7 +898,7 @@ function openParticipationForm(challengeTitle, challengeDate) {
   document.getElementById('uploadProgress').style.display = 'none';
   document.getElementById('progressBar').style.width = '0%';
   
-  window.currentChallenge = { title: challengeTitle, date: challengeDate };
+  window.currentChallenge = { title: challengeTitle, date: challengeStartIso.split('T')[0] };
   document.getElementById('participationModal').classList.add('active');
   lucide.createIcons();
 }
