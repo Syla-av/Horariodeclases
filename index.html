@@ -481,7 +481,7 @@ let selectedFile = null; // Archivo seleccionado para subir
           eventTag = '🎪 EVENTO PRESENCIAL';
           const remaining = getTimeRemaining(classData.end, now);
           if (remaining) {
-            countdownText = `▶️ Faltan ${remaining.minutes} min`;
+            countdownText = `▶️ Faltan ${formatTimeRemaining(remaining)}`;
           }
           card.classList.add('status-live');
         } else if (status === 'upcoming') {
@@ -508,7 +508,7 @@ let selectedFile = null; // Archivo seleccionado para subir
           borderColor = 'border-green-500';
           const remaining = getTimeRemaining(classData.end, now);
           if (remaining) {
-            countdownText = `▶️ Faltan ${remaining.minutes} min`;
+            countdownText = `▶️ Faltan ${formatTimeRemaining(remaining)}`;
           }
           card.classList.add('status-live');
         } else if (status === 'upcoming') {
@@ -749,7 +749,7 @@ let selectedFile = null; // Archivo seleccionado para subir
         if (status === 'live') {
           const remaining = getTimeRemaining(classData.end, now);
           if (remaining) {
-            countdownEl.textContent = `▶️ Faltan ${remaining.minutes} min ${remaining.seconds} seg`;
+            countdownEl.textContent = `${classData.isChallenge ? '⏳ Quedan' : '▶️ Faltan'} ${formatTimeRemaining(remaining)}`;
           } else {
             countdownEl.textContent = 'Clase finalizada';
           }
